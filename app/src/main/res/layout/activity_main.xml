@@ -48,5 +48,11 @@ tools:context="com.example.administrator.bk_smart_connection_android.MainActivit
         android:layout_below="@id/btnSpeak"
         android:layout_margin="10dp"
         android:text="Tap mic to start" />
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/browse_button"
+        android:id="@+id/analyze_button"
+        android:text="Analyze"/>
 </LinearLayout>
 </RelativeLayout>
