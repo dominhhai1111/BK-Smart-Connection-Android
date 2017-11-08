@@ -1,23 +1,23 @@
 package com.example.administrator.bk_smart_connection_android;
 
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
+import android.speech.RecognizerIntent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.speech.RecognitionListener;
+import android.view.View;
+import android.widget.ImageButton;
+import android.widget.TextView;
 
-import com.google.api.client.extensions.android.http.AndroidHttp;
-import com.google.api.client.extensions.android.json.AndroidJsonFactory;
-import com.google.api.services.speech.v1beta1.Speech;
-import com.google.api.services.speech.v1beta1.SpeechRequestInitializer;
-import com.google.api.services.speech.v1beta1.model.RecognitionAudio;
-import com.google.api.services.speech.v1beta1.model.RecognitionConfig;
-import com.google.api.services.speech.v1beta1.model.SpeechRecognitionResult;
-import com.google.api.services.speech.v1beta1.model.SyncRecognizeRequest;
-import com.google.api.services.speech.v1beta1.model.SyncRecognizeResponse;
-
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Locale;
 
 
 public class MainActivity extends AppCompatActivity {
+
+    private static final int REQ_CODE_SPEECH_INPUT = 100;
+    private TextView mVoiceInputTv;
+    private ImageButton mSpeakBtn;
 
     private final String CLOUD_API_KEY = "AIzaSyC04ydu7WUjQcEO360k0GSQbUG7aLgXmkg";
 
@@ -25,41 +25,43 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mVoiceInputTv = (TextView) findViewById(R.id.voiceInput);
+        mSpeakBtn = (ImageButton) findViewById(R.id.btnSpeak);
+        mSpeakBtn.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                startVoiceInput();
+            }
+        });
     }
 
-    public void setUpCloudSpeechAPI() {
-        Speech speechService = new Speech.Builder(
-                AndroidHttp.newCompatibleTransport(),
-                new AndroidJsonFactory(),
-                null
-        ).setSpeechRequestInitializer(
-                new SpeechRequestInitializer(CLOUD_API_KEY))
-                .build();
-
-        RecognitionConfig recognitionConfig = new RecognitionConfig();
-        recognitionConfig.setLanguageCode("en-US");
-
-        RecognitionAudio recognitionAudio = new RecognitionAudio();
-        //recognitionAudio.setContent(base64EncodedData);
-
-        // Create request
-        SyncRecognizeRequest request = new SyncRecognizeRequest();
-        request.setConfig(recognitionConfig);
-        request.setAudio(recognitionAudio);
-
-        // Generate response
-        SyncRecognizeResponse response = null;
+    private void startVoiceInput() {
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Hello, How can I help you?");
         try {
-            response = speechService.speech()
-                                    .syncrecognize(request)
-                                    .execute();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            startActivityForResult(intent, REQ_CODE_SPEECH_INPUT);
+        } catch (ActivityNotFoundException a) {
 
-        // Extract transcript
-        SpeechRecognitionResult result = response.getResults().get(0);
-        final String transcript = result.getAlternatives().get(0)
-                .getTranscript();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        switch (requestCode) {
+            case REQ_CODE_SPEECH_INPUT: {
+                if (resultCode == RESULT_OK && null != data) {
+                    ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                    mVoiceInputTv.setText(result.get(0));
+                }
+                break;
+            }
+
+        }
     }
 }
