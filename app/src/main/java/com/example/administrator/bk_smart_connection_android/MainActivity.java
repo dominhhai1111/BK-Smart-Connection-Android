@@ -126,14 +126,14 @@ public class MainActivity extends AppCompatActivity {
                         public void run() {
                             String entities = "";
                             for(com.google.api.services.language.v1beta2.model.Entity entity:entityList) {
-                                entities += "\n" + entity.getName().toUpperCase();
+                                entities += "\n" + entity.getName().toUpperCase() + " - " + String.format("%.03f", entity.getSalience());
                             }
                             AlertDialog dialog =
                                     new AlertDialog.Builder(MainActivity.this)
                                             .setTitle("Sentiment: " + sentiment)
                                             .setMessage("This audio file talks about :"
                                                     + entities)
-                                            .setNeutralButton("Okay", null)
+                                            .setNeutralButton("Close", null)
                                             .create();
                             dialog.show();
                         }
