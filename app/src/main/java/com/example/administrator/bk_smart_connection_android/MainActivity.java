@@ -96,8 +96,8 @@ public class MainActivity extends AppCompatActivity {
                 ).setCloudNaturalLanguageRequestInitializer(
                         new CloudNaturalLanguageRequestInitializer(CLOUD_API_KEY)
                 ).build();
-        String transcript = mVoiceInputTv.getText().toString();
-
+        //String transcript = mVoiceInputTv.getText().toString();
+        String transcript = "Michael Jackson happy song about the world, home, love, friends";
         Document document = new Document();
         document.setType("PLAIN_TEXT");
         document.setLanguage("en-US");
@@ -121,12 +121,13 @@ public class MainActivity extends AppCompatActivity {
                     final List<com.google.api.services.language.v1beta2.model.Entity> entityList = response.getEntities();
                     final float sentiment = response.getDocumentSentiment().getScore();
 
+
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             String entities = "";
                             for(com.google.api.services.language.v1beta2.model.Entity entity:entityList) {
-                                entities += "\n" + entity.getName().toUpperCase() + " - " + String.format("%.03f", entity.getSalience());
+                                entities += "\n" + entity.getName().toUpperCase() + " - " + entity.getType() + " - " + String.format("%.03f", entity.getSalience());
                             }
                             AlertDialog dialog =
                                     new AlertDialog.Builder(MainActivity.this)
