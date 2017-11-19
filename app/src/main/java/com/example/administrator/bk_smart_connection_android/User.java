@@ -1,4 +1,4 @@
-package doanbk.hust.demoretrofit;
+package com.example.administrator.bk_smart_connection_android;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;

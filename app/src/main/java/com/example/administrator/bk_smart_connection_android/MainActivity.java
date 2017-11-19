@@ -96,8 +96,8 @@ public class MainActivity extends AppCompatActivity {
                 ).setCloudNaturalLanguageRequestInitializer(
                         new CloudNaturalLanguageRequestInitializer(CLOUD_API_KEY)
                 ).build();
-        //String transcript = mVoiceInputTv.getText().toString();
-        String transcript = "Michael Jackson happy song about the world, home, love, friends";
+        String transcript = mVoiceInputTv.getText().toString();
+        //String transcript = "Michael Jackson happy song about the world, home, love, friends";
         Document document = new Document();
         document.setType("PLAIN_TEXT");
         document.setLanguage("en-US");
