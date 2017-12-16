@@ -71,7 +71,10 @@ public class PlayActivity extends AppCompatActivity implements MediaService.OnCo
     private void initData() {
 
         itemSongs = new ArrayList<>();
-        ItemSong itemSongo = new ItemSong("Em của ngày hôm qua","Sơn tùng MTP","http://dominhhhaiapps.com/public/uploads/music/Em%20%C6%A0i-Lynk%20Lee%20-Nightcore%20Version.mp3");
+        ItemSong itemSongo = new ItemSong(
+                "Em của ngày hôm qua",
+                "Sơn tùng MTP",
+                "https://mp3.zing.vn/xhr/media/download-source?type=audio&code=LmcHtLHsXzdlndLtLTFmZHtZpLVzLsnlN&sig=d3bf4d6fa9b0150a62d9503369960a90");
 
         itemSongs.add(itemSongo);
     }
