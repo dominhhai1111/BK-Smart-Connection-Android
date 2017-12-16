@@ -1,17 +1,18 @@
 package com.example.administrator.bk_smart_connection_android;
 
 import android.content.ActivityNotFoundException;
-import android.content.Entity;
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.extensions.android.json.AndroidJsonFactory;
@@ -21,11 +22,19 @@ import com.google.api.services.language.v1beta2.model.AnnotateTextRequest;
 import com.google.api.services.language.v1beta2.model.AnnotateTextResponse;
 import com.google.api.services.language.v1beta2.model.Document;
 import com.google.api.services.language.v1beta2.model.Features;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+import retrofit2.converter.scalars.ScalarsConverterFactory;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -33,6 +42,10 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQ_CODE_SPEECH_INPUT = 100;
     private TextView mVoiceInputTv;
     private ImageButton mSpeakBtn;
+    private IApi api;
+
+    private String analyzedEntities;
+    private String reObject;
 
     private final String CLOUD_API_KEY = "AIzaSyC04ydu7WUjQcEO360k0GSQbUG7aLgXmkg";
 
@@ -40,9 +53,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        mVoiceInputTv = (TextView) findViewById(R.id.voiceInput);
-        mSpeakBtn = (ImageButton) findViewById(R.id.btnSpeak);
+        initRetrofit();
+        mVoiceInputTv = findViewById(R.id.voiceInput);
+        mSpeakBtn = findViewById(R.id.btnSpeak);
         mSpeakBtn.setOnClickListener(new View.OnClickListener() {
 
             @Override
@@ -50,11 +63,21 @@ public class MainActivity extends AppCompatActivity {
                 startVoiceInput();
             }
         });
-        Button analyzeButton = (Button)findViewById(R.id.analyze_button);
+
+        Button analyzeButton = findViewById(R.id.analyze_button);
         analyzeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 analyzeText();
+
+            }
+        });
+        findViewById(R.id.play_music).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent();
+                intent.setClass(MainActivity.this,PlayActivity.class);
+                startActivity(intent);
             }
         });
     }
@@ -87,6 +110,15 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void initRetrofit() {
+        api = new Retrofit.Builder()
+                .baseUrl("http://dominhhhaiapps.com")
+                .addConverterFactory(ScalarsConverterFactory.create())
+                .addConverterFactory(GsonConverterFactory.create())
+                .build().create(IApi.class);
+
+    }
+
     public void analyzeText() {
         final CloudNaturalLanguage naturalLanguageService =
                 new CloudNaturalLanguage.Builder(
@@ -96,9 +128,9 @@ public class MainActivity extends AppCompatActivity {
                 ).setCloudNaturalLanguageRequestInitializer(
                         new CloudNaturalLanguageRequestInitializer(CLOUD_API_KEY)
                 ).build();
-        //String transcript = mVoiceInputTv.getText().toString();
-        String transcript = "Michael Jackson happy song about the world, home, love, friends";
-        Document document = new Document();
+        String transcript = mVoiceInputTv.getText().toString();
+//        String transcript = "Michael Jackson happy song about the world, home, love, friends";
+        final Document document = new Document();
         document.setType("PLAIN_TEXT");
         document.setLanguage("en-US");
         document.setContent(transcript);
@@ -125,18 +157,26 @@ public class MainActivity extends AppCompatActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            String entities = "";
-                            for(com.google.api.services.language.v1beta2.model.Entity entity:entityList) {
-                                entities += "\n" + entity.getName().toUpperCase() + " - " + entity.getType() + " - " + String.format("%.03f", entity.getSalience());
+                            List<AnalyzedObject> analyzedObjects = new ArrayList<>();
+                            for (com.google.api.services.language.v1beta2.model.Entity entity : entityList) {
+//                                entities += "\n" + entity.getName().toUpperCase() + " - " + entity.getType() + " - " + String.format("%.03f", entity.getSalience());
+                                AnalyzedObject analyzedObject = new AnalyzedObject(entity.getName().toUpperCase(), entity.getType(), entity.getSalience());
+                                analyzedObjects.add(analyzedObject);
                             }
+                            Gson gson = new Gson();
+                            analyzedEntities = gson.toJson(analyzedObjects);
+                            ReObject re = new ReObject(document.getContent(), sentiment);
+                            reObject = gson.toJson(re);
+                            Log.d(MainActivity.class.getName(), "run: " + analyzedEntities);
                             AlertDialog dialog =
                                     new AlertDialog.Builder(MainActivity.this)
                                             .setTitle("Sentiment: " + sentiment)
                                             .setMessage("This audio file talks about :"
-                                                    + entities)
+                                                    + analyzedEntities)
                                             .setNeutralButton("Close", null)
                                             .create();
                             dialog.show();
+
                         }
                     });
                 } catch (IOException e) {
