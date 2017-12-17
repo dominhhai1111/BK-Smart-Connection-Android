@@ -30,17 +30,17 @@ public class ControlData {
 
     public List<ItemSong> getListMusic(String analyzedObject, String reObject){
 //         List<ItemSong> itemSongs= new ArrayList<>();
-        api.getMusic(analyzedObject,reObject).enqueue(new Callback<List<ItemSong>>() {
-            @Override
-            public void onResponse(Call<List<ItemSong>> call, Response<List<ItemSong>> response) {
-                itemSongs = response.body();
-            }
-
-            @Override
-            public void onFailure(Call<List<ItemSong>> call, Throwable t) {
-
-            }
-        });
+//        api.getMusic(analyzedObject,reObject).enqueue(new Callback<List<ItemSong>>() {
+//            @Override
+//            public void onResponse(Call<List<ItemSong>> call, Response<List<ItemSong>> response) {
+//                itemSongs = response.body();
+//            }
+//
+//            @Override
+//            public void onFailure(Call<List<ItemSong>> call, Throwable t) {
+//
+//            }
+//        });
         return itemSongs;
     }
 

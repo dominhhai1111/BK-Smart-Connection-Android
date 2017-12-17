@@ -13,8 +13,11 @@ import retrofit2.http.Path;
 
 public interface IApi {
 
+//    @GET("/test/{object1}/{object2}")
+//    Call<List<ItemSong>> getMusic(@Path("object1") String analyzedObject, @Path("object2") String reObject);
+
     @GET("/test/{object1}/{object2}")
-    Call<List<ItemSong>> getMusic(@Path("object1") String analyzedObject, @Path("object2") String reObject);
+    Call<String> getMusic(@Path("object1") String analyzedObject, @Path("object2") String reObject);
 
 //    @GET("")
 //    Call<ItemSong> getMusic(@Path("object1") String analyzedObject, @Path("object2") String reObject);

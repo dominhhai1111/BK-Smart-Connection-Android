@@ -114,7 +114,6 @@ public class MainActivity extends AppCompatActivity {
         api = new Retrofit.Builder()
                 .baseUrl("http://dominhhhaiapps.com")
                 .addConverterFactory(ScalarsConverterFactory.create())
-                .addConverterFactory(GsonConverterFactory.create())
                 .build().create(IApi.class);
 
     }
@@ -128,8 +127,8 @@ public class MainActivity extends AppCompatActivity {
                 ).setCloudNaturalLanguageRequestInitializer(
                         new CloudNaturalLanguageRequestInitializer(CLOUD_API_KEY)
                 ).build();
-        String transcript = mVoiceInputTv.getText().toString();
-//        String transcript = "Michael Jackson happy song about the world, home, love, friends";
+//        String transcript = mVoiceInputTv.getText().toString();
+        String transcript = "Michael Jackson happy song about the world, home, love, friends";
         final Document document = new Document();
         document.setType("PLAIN_TEXT");
         document.setLanguage("en-US");
@@ -176,6 +175,17 @@ public class MainActivity extends AppCompatActivity {
                                             .setNeutralButton("Close", null)
                                             .create();
                             dialog.show();
+                            api.getMusic(analyzedEntities,reObject).enqueue(new Callback<String>() {
+                                @Override
+                                public void onResponse(Call<String> call, Response<String> response) {
+                                    mVoiceInputTv.setText(response.body());
+                                }
+
+                                @Override
+                                public void onFailure(Call<String> call, Throwable t) {
+
+                                }
+                            });
 
                         }
                     });
