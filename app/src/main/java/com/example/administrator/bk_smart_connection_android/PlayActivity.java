@@ -1,7 +1,10 @@
 package com.example.administrator.bk_smart_connection_android;
 
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -9,21 +12,33 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.util.ArrayList;
+import com.jakewharton.retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
+
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
  * Created by DOANBK on 12/15/2017.
  */
 
-public class PlayActivity extends AppCompatActivity implements MediaService.OnControlMusic, MediaService.OnCompleteMusic, SongAdapter.IMusicAdapter {
+public class PlayActivity extends AppCompatActivity
+        implements MediaService.OnControlMusic,
+        MediaService.OnCompleteMusic,
+        SongAdapter.IMusicAdapter {
 
     private ServiceConnection serviceConnection;
     private MediaService mediaService;
@@ -35,20 +50,45 @@ public class PlayActivity extends AppCompatActivity implements MediaService.OnCo
     TextView txtArtist;
     @BindView(R.id.button_small_play)
     ImageView btnSmallPlay;
+    @BindView(R.id.toolbar)
+    Toolbar toolbar;
+    ImageView backView;
     private ItemSong itemSong;
     private SongAdapter adapter;
     private List<ItemSong> itemSongs;
     private RecyclerView rcSong;
+    private Disposable disposable;
+    private String reObject;
+    private String analyzedObject;
     private int state = 0;
+    private IApi api;
+    private MyBroadCastMain myBroadCastMain;
+    public static final String BASE_URL= "http://dominhhhaiapps.com";
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list_music);
         ButterKnife.bind(this);
+        Intent intent = getIntent();
+        analyzedObject = intent.getStringExtra("ANALYZEDOBJECT");
+        reObject = intent.getStringExtra("REOBJECT");
+        api = new Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                .build().create(IApi.class);
+        toolbar.findViewById(R.id.danhsachnhac).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onBackPressed();
+            }
+        });
+
         inits();
         onStartService();
         connectServiceMedia();
+        registerBroadcast();
 
     }
 
@@ -56,8 +96,9 @@ public class PlayActivity extends AppCompatActivity implements MediaService.OnCo
         if (adapter != null) {
             adapter.notifyDataSetChanged();
         }
-        initData();
         initView();
+        initData();
+
     }
 
     private void initView() {
@@ -66,17 +107,46 @@ public class PlayActivity extends AppCompatActivity implements MediaService.OnCo
         rcSong.setLayoutManager(manager);
         adapter = new SongAdapter(this);
         rcSong.setAdapter(adapter);
+
     }
 
-    private void initData() {
+    private void registerBroadcast() {
+        myBroadCastMain = new MyBroadCastMain();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("CANCEL");
+        registerReceiver(myBroadCastMain, filter);
+    }
+    private boolean initData() {
 
-        itemSongs = new ArrayList<>();
-        ItemSong itemSongo = new ItemSong(
-                "Em của ngày hôm qua",
-                "Sơn tùng MTP",
-                "https://mp3.zing.vn/xhr/media/download-source?type=audio&code=LmcHtLHsXzdlndLtLTFmZHtZpLVzLsnlN&sig=d3bf4d6fa9b0150a62d9503369960a90");
+        if (disposable != null && !disposable.isDisposed()) {
+            disposable.dispose();
+        }
+        disposable = api.getMusic( analyzedObject, reObject)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<List<ItemSong>>() {
+                               @Override
+                               public void accept(List<ItemSong> itemSongOnlines) throws Exception {
+                                   itemSongs = itemSongOnlines;
+                                   adapter.notifyDataSetChanged();
+                               }
+                           },
+                        new Consumer<Throwable>() {
+                            @Override
+                            public void accept(Throwable throwable) throws Exception {
+                                throwable.printStackTrace();
+                            }
+                        });
+        return false;
 
-        itemSongs.add(itemSongo);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(myBroadCastMain);
+        unbindService(serviceConnection);
+
     }
 
     public void openPlay(ItemSong itemSong) {
@@ -126,10 +196,6 @@ public class PlayActivity extends AppCompatActivity implements MediaService.OnCo
         startService(intent);
     }
 
-    @Override
-    public void onBackPressed() {
-        moveTaskToBack(true);
-    }
 
     @OnClick(R.id.button_small_play)
     void onClick() {
@@ -156,6 +222,8 @@ public class PlayActivity extends AppCompatActivity implements MediaService.OnCo
         }
 
     }
+
+
 
 //    public void pause(){
 //        if (mediaService.isPlaying()){
@@ -204,6 +272,9 @@ public class PlayActivity extends AppCompatActivity implements MediaService.OnCo
 
     @Override
     public int getCount() {
+        if (itemSongs == null) {
+            return 0;
+        }
         return itemSongs.size();
     }
 
@@ -215,5 +286,23 @@ public class PlayActivity extends AppCompatActivity implements MediaService.OnCo
     @Override
     public void onClickItemExternal(int position) {
         openPlay(itemSongs.get(position));
+    }
+
+    private class MyBroadCastMain extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            switch (action) {
+                case "CANCEL":
+                    if (state == 0) {
+                        smallAvatar.cancelRotateAnimation();
+                        btnSmallPlay.setImageResource(R.drawable.ic_play_24dp);
+                        state = 1;
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 }

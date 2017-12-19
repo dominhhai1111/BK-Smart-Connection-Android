@@ -2,6 +2,7 @@ package com.example.administrator.bk_smart_connection_android;
 
 import java.util.List;
 
+import io.reactivex.Observable;
 import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
@@ -13,11 +14,11 @@ import retrofit2.http.Path;
 
 public interface IApi {
 
-//    @GET("/test/{object1}/{object2}")
-//    Call<List<ItemSong>> getMusic(@Path("object1") String analyzedObject, @Path("object2") String reObject);
-
     @GET("/test/{object1}/{object2}")
-    Call<String> getMusic(@Path("object1") String analyzedObject, @Path("object2") String reObject);
+    Observable<List<ItemSong>> getMusic(@Path("object1") String analyzedObject, @Path("object2") String reObject);
+
+//    @GET("/test/{object1}/{object2}")
+//    Observable<String> getMusic(@Path("object1") String analyzedObject, @Path("object2") String reObject);
 
 //    @GET("")
 //    Call<ItemSong> getMusic(@Path("object1") String analyzedObject, @Path("object2") String reObject);

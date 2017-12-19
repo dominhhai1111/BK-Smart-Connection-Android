@@ -5,23 +5,34 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/document"
-        style="@style/Style_title"
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#BDBDBD"
-        android:text="I want to come back home"
-        android:textColor="#000"
-        android:textSize="25sp" />
+        android:background="#00BD9C">
+        <android.support.v7.widget.AppCompatImageView
+            android:id="@+id/danhsachnhac"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+
+            app:srcCompat="@drawable/ic_keyboard_backspace_black_24dp"
+            />
+        <TextView
+            android:id="@+id/btn"
+            android:text="Danh sách bài hát phù hợp"
+            android:textSize="20dp"
+            android:textColor="#FFFFFF"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </android.support.v7.widget.Toolbar>
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/list_music"
         style="@style/Style_title"
+        android:layout_below="@id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/document"
-        android:layout_marginTop="16dp">
+        android:layout_marginTop="8dp">
 
     </android.support.v7.widget.RecyclerView>
 
@@ -31,7 +42,8 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:elevation="16dp"
-        app:cardBackgroundColor="#90A4AE">
+
+        app:cardBackgroundColor="#00BD9C">
 
         <LinearLayout
             android:layout_width="match_parent"

@@ -4,8 +4,10 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
 import android.os.Binder;
@@ -19,16 +21,26 @@ import android.widget.RemoteViews;
  */
 
 public class MediaService extends Service implements MediaPlayer.OnCompletionListener {
-
+public static final String LINK_MUSIC="http://dominhhhaiapps.com/public/uploads/music/";
     private PlayMusic playMusic;
     private OnControlMusic controlMusic;
     private OnCompleteMusic onCompleteMusic;
+    private MyBroadCast myBroadCast;
 
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
         return new MyBinder(this);
 
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        myBroadCast = new MyBroadCast();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("CANCEL");
+        registerReceiver(myBroadCast, filter);
     }
 
     public void setOnCompleteMusic(OnCompleteMusic onCompleteMusic) {
@@ -78,7 +90,7 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
             playMusic = new PlayMusic();
         }
 
-        playMusic.init(this, itemSong.getLink());
+        playMusic.init(this, LINK_MUSIC+itemSong.getLink());
         if (playMusic.getMediaPlayer() == null) {
             return;
         }
@@ -124,7 +136,7 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 
         Intent intent
                 = new Intent();
-        intent.setClass(this, MainActivity.class);
+        intent.setClass(this, PlayActivity.class);
 
         intent.putExtra("ITEMSONG", itemSong);
         intent.putExtra("ID", 1);
@@ -162,6 +174,12 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
 
         stopForeground(false);
         startForeground(1, builder.build());
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(myBroadCast);
     }
 
     @Override
@@ -209,6 +227,26 @@ public class MediaService extends Service implements MediaPlayer.OnCompletionLis
         void onPauseMusic();
 
         void onPlayMusic();
+    }
+    private class MyBroadCast extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            switch (action){
+                case "CANCEL":
+                    NotificationManager notificationManager = (NotificationManager)
+                            getSystemService(Context.NOTIFICATION_SERVICE);
+                    stopForeground(true);
+                    notificationManager.cancel(1);
+                    if ( playMusic.isPlaying() ) {
+                        playMusic.pause();
+                    }
+                    break;
+                default:
+                    break;
+
+            }
+        }
     }
 }
 

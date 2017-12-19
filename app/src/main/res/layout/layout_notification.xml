@@ -10,7 +10,7 @@
         android:layout_width="64dp"
         android:layout_height="64dp"
         android:scaleType="centerCrop"
-        android:src="@drawable/girl" />
+        android:src="@drawable/icon_music" />
 
 
     <RelativeLayout
@@ -29,7 +29,7 @@
             android:singleLine="true"
             android:gravity="center"
             android:text="Name"
-            android:textColor="@color/colorAccent"
+            android:textColor="#FFFFFF"
             android:textSize="24dp" />
 
         <TextView
@@ -42,7 +42,7 @@
             android:singleLine="true"
             android:gravity="center"
             android:text="HO quang hieu"
-            android:textColor="@color/colorAccent"
+            android:textColor="#FFFFFf"
             android:textSize="16dp" />
 
         <LinearLayout
@@ -62,7 +62,7 @@
                 android:paddingLeft="8dp"
                 android:paddingRight="8dp"
                 android:src="@android:drawable/ic_media_pause"
-                android:tint="@color/colorAccent" />
+                android:tint="#FFFFFF" />
 
         </LinearLayout>
 

@@ -1,5 +1,7 @@
 package com.example.administrator.bk_smart_connection_android;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.io.Serializable;
 
 /**
@@ -7,15 +9,14 @@ import java.io.Serializable;
  */
 
 public class ItemSong implements Serializable{
+    @SerializedName("song_name")
     private String name;
+    @SerializedName("singer_name")
     private String artist;
+    @SerializedName("url")
     private String link;
-
-    public ItemSong(String name, String artist, String link) {
-        this.name = name;
-        this.artist = artist;
-        this.link = link;
-    }
+    @SerializedName("view_name")
+    private String view;
 
     public String getName() {
         return name;
@@ -27,6 +28,18 @@ public class ItemSong implements Serializable{
 
     public String getLink() {
         return link;
+    }
+
+    public String getView() {
+        return view;
+    }
+
+    public ItemSong(String name, String artist, String link, String view) {
+
+        this.name = name;
+        this.artist = artist;
+        this.link = link;
+        this.view = view;
     }
 }
 

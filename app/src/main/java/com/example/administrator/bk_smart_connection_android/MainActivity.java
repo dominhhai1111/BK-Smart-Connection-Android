@@ -5,15 +5,17 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import com.github.ybq.android.spinkit.SpinKitView;
+import com.github.ybq.android.spinkit.SpriteFactory;
+import com.github.ybq.android.spinkit.Style;
+import com.github.ybq.android.spinkit.sprite.Sprite;
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.extensions.android.json.AndroidJsonFactory;
 import com.google.api.services.language.v1beta2.CloudNaturalLanguage;
@@ -23,18 +25,10 @@ import com.google.api.services.language.v1beta2.model.AnnotateTextResponse;
 import com.google.api.services.language.v1beta2.model.Document;
 import com.google.api.services.language.v1beta2.model.Features;
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
-import retrofit2.converter.scalars.ScalarsConverterFactory;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -42,10 +36,11 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQ_CODE_SPEECH_INPUT = 100;
     private TextView mVoiceInputTv;
     private ImageButton mSpeakBtn;
-    private IApi api;
 
+//    private Button btnPlay;
     private String analyzedEntities;
     private String reObject;
+    SpinKitView spinKitView;
 
     private final String CLOUD_API_KEY = "AIzaSyC04ydu7WUjQcEO360k0GSQbUG7aLgXmkg";
 
@@ -53,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        initRetrofit();
+//        initRetrofit();
         mVoiceInputTv = findViewById(R.id.voiceInput);
         mSpeakBtn = findViewById(R.id.btnSpeak);
         mSpeakBtn.setOnClickListener(new View.OnClickListener() {
@@ -64,6 +59,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        spinKitView = (SpinKitView) findViewById(R.id.progress);
+        Style style = Style.values()[2];
+        Sprite drawable = SpriteFactory.create(style);
+        spinKitView.setIndeterminateDrawable(drawable);
+
         Button analyzeButton = findViewById(R.id.analyze_button);
         analyzeButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -72,14 +72,24 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-        findViewById(R.id.play_music).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent();
-                intent.setClass(MainActivity.this,PlayActivity.class);
-                startActivity(intent);
-            }
-        });
+//        btnPlay = findViewById(R.id.play_music);
+//        btnPlay.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                Intent intent = new Intent();
+//                intent.setClass(MainActivity.this,PlayActivity.class);
+//                intent.putExtra("ANALYZEDOBJECT",analyzedEntities);
+//                intent.putExtra("REOBJECT",reObject);
+//                startActivity(intent);
+//            }
+//        });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        spinKitView.setVisibility(View.INVISIBLE);
+
     }
 
     private void startVoiceInput() {
@@ -110,15 +120,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void initRetrofit() {
-        api = new Retrofit.Builder()
-                .baseUrl("http://dominhhhaiapps.com")
-                .addConverterFactory(ScalarsConverterFactory.create())
-                .build().create(IApi.class);
-
-    }
 
     public void analyzeText() {
+        spinKitView.setVisibility(View.VISIBLE);
         final CloudNaturalLanguage naturalLanguageService =
                 new CloudNaturalLanguage.Builder(
                         AndroidHttp.newCompatibleTransport(),
@@ -128,7 +132,6 @@ public class MainActivity extends AppCompatActivity {
                         new CloudNaturalLanguageRequestInitializer(CLOUD_API_KEY)
                 ).build();
         String transcript = mVoiceInputTv.getText().toString();
-//        String transcript = "Michael Jackson happy song about the world, home, love, friends";
         final Document document = new Document();
         document.setType("PLAIN_TEXT");
         document.setLanguage("en-US");
@@ -142,6 +145,7 @@ public class MainActivity extends AppCompatActivity {
         request.setDocument(document);
         request.setFeatures(features);
 
+
         AsyncTask.execute(new Runnable() {
             @Override
             public void run() {
@@ -151,6 +155,7 @@ public class MainActivity extends AppCompatActivity {
                                     .annotateText(request).execute();
                     final List<com.google.api.services.language.v1beta2.model.Entity> entityList = response.getEntities();
                     final float sentiment = response.getDocumentSentiment().getScore();
+
 
 
                     runOnUiThread(new Runnable() {
@@ -167,25 +172,20 @@ public class MainActivity extends AppCompatActivity {
                             ReObject re = new ReObject(document.getContent(), sentiment);
                             reObject = gson.toJson(re);
                             Log.d(MainActivity.class.getName(), "run: " + analyzedEntities);
-                            AlertDialog dialog =
-                                    new AlertDialog.Builder(MainActivity.this)
-                                            .setTitle("Sentiment: " + sentiment)
-                                            .setMessage("This audio file talks about :"
-                                                    + analyzedEntities)
-                                            .setNeutralButton("Close", null)
-                                            .create();
-                            dialog.show();
-                            api.getMusic(analyzedEntities,reObject).enqueue(new Callback<String>() {
-                                @Override
-                                public void onResponse(Call<String> call, Response<String> response) {
-                                    mVoiceInputTv.setText(response.body());
-                                }
-
-                                @Override
-                                public void onFailure(Call<String> call, Throwable t) {
-
-                                }
-                            });
+//                            AlertDialog dialog =
+//                                    new AlertDialog.Builder(MainActivity.this)
+//                                            .setTitle("Sentiment: " + sentiment)
+//                                            .setMessage("This audio file talks about :"
+//                                                    + analyzedEntities)
+//                                            .setNeutralButton("Close", null)
+//                                            .create();
+//                            dialog.show();
+//                            btnPlay.setVisibility(View.VISIBLE);
+                            Intent intent = new Intent();
+                            intent.setClass(MainActivity.this,PlayActivity.class);
+                            intent.putExtra("ANALYZEDOBJECT",analyzedEntities);
+                            intent.putExtra("REOBJECT",reObject);
+                            startActivity(intent);
 
                         }
                     });
@@ -196,5 +196,8 @@ public class MainActivity extends AppCompatActivity {
                 // More code here
             }
         });
+
     }
+
+
 }
